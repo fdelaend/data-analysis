@@ -3,32 +3,25 @@ require(lattice)
 require(vegan)
 require(mgcv)
 source("/Users/frederik/Documents/work/functions/Functions.R")
-BioVs     <- read.delim("/Users/frederik/Documents/litdata/bvd_species_ag_030614.txt") 
 #get locations of phytodata and corresponding substances and concentrations
-source("/Users/frederik/Documents/work/BD_EF/data analysis/PhytData.R")
+source("/Users/frederik/Documents/work/BD_EF/data-analysis/PhytData.R")
 #specify destination for plots and other output
-ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data analysis"
-AllData <- PhytoData
-#do you want to calculate ef from counts or use EF available in the data file (the 'EF' entry)?
-Calc <- rep(0,105) #c(1, 1, rep(0,6), 1, 0, 0, 1, 0, 1)
-#color specs
+ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis"
+#color specs: input for all possible color codes are generated here,
+#for later input into rgb
 cols <- expand.grid(c(0, 0.5, 1), c(0, 0.5, 1), c(0, 0.5, 1))
-#where do the counts start? 
-CountColsStart <- c(7, 7, NA, NA, NA, NA, NA, 
-                    NA, 5, NA, NA, 6, NA, 5)
-#dates selected for analysis
-PickDates <- c(21, 21, 56.3, 4, 999, 999, 999, 
-               999, 3, 999, 999, 8, 999, 3)
+#where do the counts start in the files with counts? 
+CountColsStart <- c(7, 6, 7, NA, 5, 
+                    6, NA, 5)
+#starting and ending dates considered for analysis 
+#(exclude before and after exposure period)
+StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1)
+EndDates <- c(21, 21, 21, 1e10, 28, 80, 1e10, 4)
 #names given to indicate time in the data files
-TimeNames <- c("Days.p.a.", "Days.p.a.", "Time", "Time", "Time", 
-               "Time", "Time", "Time", "Week", "Time", "Time", "Week", 
-               "Time", "Week")
+TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.", 
+               "Time", "Week", "Week", "Time", "Week") 
 #names given to indicate treatment in the data files
-TreatmentNames <- c("Treatment","Treatment","Treatment", #Should always be 'Treatment'
-                    "Treatment", "Treatment","Treatment",
-                    "Treatment","Treatment","Treatment",
-                    "Treatment","Treatment", "Treatment", 
-                    "Treatment","Treatment")
+TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
 endpoints <- c("Richness", "EF")
 
@@ -40,56 +33,39 @@ plot(0,0,
      pch=19, xlab="Effect on richness", 
      ylab="Effect on EF")
 
-SelectedStudies <- c(8, 13, 1, 2, 9, 12, 14)
-
-for (i in SelectedStudies)
+for (i in c(1:length(PhytData)))
 {
   #Reading of data and EF calc
-  Data   <- read.delim(AllData[i])
-  source("EF calc.R")
+  Data   <- read.delim(PhytData[i])
   #Calculation of effects 
-  Result <- BDEF(data=Data, 
-                 CountCols=CountColsStart[i], 
-                 TimeName=TimeNames[i], 
+  Result <- BDEF(data=Data, #will throw a warning cause similarity not yet done 
+                 CountCols=CountColsStart[i],           #correctly. No prob 
+                 TimeName=TimeNames[i],                 #cause not used for now.
                  TreatmentName=TreatmentNames[i],
-                 Affected = 0,
-                 NoAffected = 1e10,
-                 endpoints = endpoints,
+                 Affected = StartDates[i]-1e-10, #have to substract
+                 NoAffected = EndDates[i]+1e-10, #or add small nr cause 
+                 endpoints = endpoints,          #< and > in BDEF function
                  x=0)[[1]]
   #Put everything together
   Result <- cbind(Result$Richness, 
                   Result$EF[,c("EF","EFEffect", 
                                "EFEffectTzero")])
-  if (min(Concs[[i]])==0) 
-  {
+  if (min(Concs[[i]])==0) #Concentrations will be log-transformed later 
+  {                       #so we need to replace zero by a low nr.
     Concs[[i]][1] <- Concs[[i]][2]/2
   }
-  Result$Conc <- log10(Concs[[i]][as.numeric(Result$Treatment)])
-  #Do some plotting of raw data for both endpoints
-  #source("PlotRawData.R")
-  #Do subsetting of data: only use 'PickDates' in the analysis
-  if (PickDates[i]!=999)
-  {
-    Ind <- which(Result[,TimeNames[i]]==PickDates[i])
-    Result <- Result[Ind,]
-  }
+  Result$Conc <- log10(Concs[[i]][as.numeric(Result$Treatment)]) #here's the log transform
   source("DRM.r")
-#  quartz("",6,3,type="pdf",file=paste(i,"Test.pdf"))
-#  print(get("Richness"), position=c(0, 0, 0.5, 0.5), more=TRUE)
-#  print(get("EF"), position=c(0.5, 0, 1, 0.5), more=TRUE)
-#  print(get("RichnessDR"), position=c(0, 0.5, 0.5, 1), more=TRUE)
-#  print(get("EFDR"), position=c(0.5, 0.5, 1, 1))
-#  dev.off()
 }
 abline(h=0)
 abline(v=0)
 legend("bottomright", 
-       as.character(SelectedStudies),
+       as.character(c(1:length(PhytData))),
        pch=NA, lty="solid", 
        cex=0.5, ncol=2,
-       col=rgb(cols[[1]][SelectedStudies], 
-               cols[[2]][SelectedStudies], 
-               cols[[3]][SelectedStudies], 1))
+       col=rgb(cols[[1]][c(1:length(PhytData))], 
+               cols[[2]][c(1:length(PhytData))], 
+               cols[[3]][c(1:length(PhytData))], 1))
 dev.off()
 
 

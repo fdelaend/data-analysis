@@ -5,10 +5,15 @@ Lowers <- NULL
 Medians<- NULL
 for (endpoint in endpoints)
 {
-  #Add really small nr to endpoint to avoid zeros
+  #Add really small nr to endpoint to avoid zeros (very rarerly the case)
   Result[,endpoint] <- Result[,endpoint] +1e-6
+  #Now calculate average EF and richness over considered period per treatment
+  #If there are replicates also the mean of the replicated is taken
+  form <- paste(endpoint,"~ Conc")
+  ResultEndpoint <- aggregate(as.formula(form), data=Result, mean)
+  #Now do the dose-response
   Model <- gam(as.formula(paste(endpoint," ~ s(Conc,k=3)")), 
-               family=Gamma(), data=Result)
+               family=Gamma(), data=ResultEndpoint)
   NewConcs <- seq(min(Result$Conc), max(Result$Conc), length.out = 10)
   Preds <- predict(Model, type="response", se=T, 
                    newdata=data.frame(Conc=NewConcs))

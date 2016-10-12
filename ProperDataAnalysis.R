@@ -9,17 +9,18 @@ source("/Users/frederik/Documents/work/BD_EF/data-analysis/PhytData.R")
 ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
 #color specs: input for all possible color codes are generated here,
 #for later input into rgb
-cols <- expand.grid(c(0, 0.8), c(0.5, 0.8), c(0.5, 0.8))
+cols <- expand.grid(c(0,0.5,1), c(0,0.5,1), c(0,0.5,1))
 #where do the counts start in the files with counts? 
 CountColsStart <- c(7, 6, 7, NA, 5, 
-                    6, NA, 5)
+                    6, NA, 5, rep(NA,3), NA)
 #starting and ending dates considered for analysis 
 #(exclude before and after exposure period)
-StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1)
-EndDates <- c(21, 21, 21, 1e10, 28, 80, 1e10, 4)
+StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1, rep(-1e10, 3), -1e10)
+EndDates <- c(21, 21, 21, 1e10, 28, 80, 1e10, 4, rep(1e10, 3), 1e10)
 #names given to indicate time in the data files
 TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.", 
-               "Time", "Week", "Week", "Time", "Week") 
+               "Time", "Week", "Week", "Time", "Week", 
+               "Time", "Time", "Time", "Time") 
 #names given to indicate treatment in the data files
 TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
@@ -61,13 +62,13 @@ for (i in c(1:length(PhytData)))
 }
 abline(h=0)
 abline(v=0)
-legend("topright", 
-       as.character(c(1:length(PhytData))),
-       pch=NA, lty="solid", 
-       cex=0.65, ncol=2,
-       col=rgb(cols[[1]][c(1:length(PhytData))], 
-               cols[[2]][c(1:length(PhytData))], 
-               cols[[3]][c(1:length(PhytData))], 1))
+#legend("topright", 
+#       as.character(c(1:length(PhytData))),
+#       pch=NA, lty="solid", 
+#       cex=0.65, ncol=2,
+#       col=rgb(cols[[1]][c(1:length(PhytData))], 
+#               cols[[2]][c(1:length(PhytData))], 
+#               cols[[3]][c(1:length(PhytData))], 1))
 
 plot(EFEffectsAtInvarRichness[,1],
      EFEffectsAtInvarRichness[,2], main="B",

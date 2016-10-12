@@ -6,10 +6,10 @@ source("/Users/frederik/Documents/work/functions/Functions.R")
 #get locations of phytodata and corresponding substances and concentrations
 source("/Users/frederik/Documents/work/BD_EF/data-analysis/PhytData.R")
 #specify destination for plots and other output
-ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis"
+ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
 #color specs: input for all possible color codes are generated here,
 #for later input into rgb
-cols <- expand.grid(c(0, 0.5, 1), c(0, 0.5, 1), c(0, 0.5, 1))
+cols <- expand.grid(c(0, 0.8), c(0.5, 0.8), c(0.5, 0.8))
 #where do the counts start in the files with counts? 
 CountColsStart <- c(7, 6, 7, NA, 5, 
                     6, NA, 5)
@@ -25,14 +25,16 @@ TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
 endpoints <- c("Richness", "EF")
 
-quartz("",3,3,type="pdf",
+quartz("",6,3,type="pdf",
        file=paste(ResultsFolder,"Test.pdf",sep=""))
-par(mar=c(5,5,1,1), las=1)
-plot(0,0, 
+par(mar=c(5,5,2,0.5), las=1, mfrow=c(1,2))
+plot(0,0,  main="A",
      xlim=c(-1,1), ylim=c(-1,1), 
      pch=19, xlab="Effect on richness", 
      ylab="Effect on EF")
-
+#allocate object to put in effects on ef 
+#occurring with no effect on richness
+EFEffectsAtInvarRichness <- NULL
 for (i in c(1:length(PhytData)))
 {
   #Reading of data and EF calc
@@ -59,14 +61,22 @@ for (i in c(1:length(PhytData)))
 }
 abline(h=0)
 abline(v=0)
-legend("bottomright", 
+legend("topright", 
        as.character(c(1:length(PhytData))),
        pch=NA, lty="solid", 
-       cex=0.5, ncol=2,
+       cex=0.65, ncol=2,
        col=rgb(cols[[1]][c(1:length(PhytData))], 
                cols[[2]][c(1:length(PhytData))], 
                cols[[3]][c(1:length(PhytData))], 1))
+
+plot(EFEffectsAtInvarRichness[,1],
+     EFEffectsAtInvarRichness[,2], main="B",
+     col=rgb(cols[[1]][EFEffectsAtInvarRichness[,1]], 
+             cols[[2]][EFEffectsAtInvarRichness[,1]], 
+             cols[[3]][EFEffectsAtInvarRichness[,1]], 1),
+     xlab="Study", ylab="Effect on EF \n at invariant richness",
+     pch=15)
+abline(h=0)
+
 dev.off()
-
-
 

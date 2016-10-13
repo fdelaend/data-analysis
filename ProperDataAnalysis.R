@@ -47,12 +47,8 @@ for (i in c(1:length(PhytData)))
                  TreatmentName=TreatmentNames[i],
                  Affected = StartDates[i]-1e-10, #have to substract
                  NoAffected = EndDates[i]+1e-10, #or add small nr cause 
-                 endpoints = endpoints,          #< and > in BDEF function
-                 x=0)[[1]]
-  #Put everything together
-  Result <- cbind(Result$Richness, 
-                  Result$EF[,c("EF","EFEffect", 
-                               "EFEffectTzero")])
+                 endpoints = "Richness",          #< and > in BDEF function
+                 x=0)
   if (min(Concs[[i]])==0) #Concentrations will be log-transformed later 
   {                       #so we need to replace zero by a low nr.
     Concs[[i]][1] <- Concs[[i]][2]/2

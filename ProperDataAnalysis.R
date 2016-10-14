@@ -24,7 +24,7 @@ TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.",
 #names given to indicate treatment in the data files
 TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
-endpoints <- c("Richness", "EF")
+endpoints <- c("Richness", "EF", "Dissim")
 
 quartz("",6,3,type="pdf",
        file=paste(ResultsFolder,"Test.pdf",sep=""))

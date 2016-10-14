@@ -16,7 +16,7 @@ CountColsStart <- c(7, 6, 7, NA, 5,
 #starting and ending dates considered for analysis 
 #(exclude before and after exposure period)
 StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1, rep(-1e10, 3), -1e10)
-EndDates <- c(21, 21, 21, 1e10, 28, 80, 1e10, 4, rep(1e10, 3), 1e10)
+EndDates <- c(21, 24, 21, 1e10, 4, 11, 1e10, 4, rep(1e10, 3), 1e10)
 #names given to indicate time in the data files
 TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.", 
                "Time", "Week", "Week", "Time", "Week", 

@@ -28,11 +28,14 @@ TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.",
 TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
 #..."Richness" and "EF" should be listed as 1 and 2 in this vector
-endpoints <- c("Richness", "EF", "Dissim")
+endpoints <- c("Richness", "EF", "Sim")
 
 #allocate object to store effects on ef 
-#occurring with no effect on richness
+#...occurring with no effect on richness
 EFEffectsAtInvarRichness <- NULL
+#allocate object to store effects on similarity with control
+#...occurring with no effect on richness
+EFEffectsAtInvarRichnessComp <- NULL
 #allocate object to store dose responses for "Richness" and "EF"
 DoseResps <- NULL
 #allocate object to store dose response data for "Richness" and "EF"
@@ -72,6 +75,7 @@ colnames(DoseResps) <- c("Study", "Scaled Log Concentration",
 colnames(DoseRespDatas) <- c("Study", "Scaled Log Concentration",
                              "Effect on mean richness",
                              "Effect on mean EF")
+
 colnames(BEF)       <- c("Study", "Richness", "EF")
 
 

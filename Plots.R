@@ -66,10 +66,6 @@ axis(1, at=c(1:length(PhytData)),
      labels=c(1:length(PhytData)),
      las=2, cex.axis=1)
 abline(h=0)
-points(EFEffectsAtInvarRichness[,1],
-       EFEffectsAtInvarRichness[,3])
-points(EFEffectsAtInvarRichness[,1],
-       EFEffectsAtInvarRichness[,4])
 
 plot(EFEffectsAtInvarRichnessComp[,1],
      EFEffectsAtInvarRichnessComp[,2], main="D",

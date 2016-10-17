@@ -71,9 +71,6 @@ DoseResps <- rbind(DoseResps,
 DoseRespDatas <- rbind(DoseRespDatas,
                        cbind(i, DoseRespData))
 
-#track emerging B-EF trajectory
-BEF <- rbind(BEF, cbind(i,Means[,c(1:2)]))
-
 #get indices where effect on richness not different from zero
 #...as decided based on the standard errors encompassing 0
 #...and track

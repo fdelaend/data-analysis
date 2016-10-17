@@ -1,209 +1,111 @@
 
-require('lattice')
-require('mgcv')
-require('vegan')
-require("latticeExtra")
-#redo 6, 7
-
-#FILL OUT THESE
-sims <- "VI"#
-
-#what BD index to plot on the y axis of a BEF plot?
-BD <- "Richness" #or "Richness" or "Evenness"
+require(lattice)
+require(vegan)
+require(mgcv)
+source("/Users/frederik/Documents/work/functions/Functions.R")
+#get locations of simulated data and corresponding substances and concentrations
+#...after specifying what simulations to use for analyses. 
+sims <- "VI"
 ResultsPath <- paste("/Users/frederik/Documents/work/BD_EF/simulations",sims,"/output/",sep="")#Say where the results are
+#specify destination for plots and other output
+ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
+#color specs: input for all possible color codes are generated here,
+#for later input into rgb
+cols <- rgb(runif(0,1,100), runif(0,1,100), runif(0,1,100), 1)
 Iterations <- 50 #nr of iterations per level
-n <- 20#20 #20initial nr of species
+n <- 20#initial nr of species
 Concs <- seq(0, 200, 20) #seq(0, 200, 20)#tested concentrations
 Alphas <- c(0.2,0.6)#c(0.2, 0.4, 0.6, 0.8)#c(0.5) #tested alphas #
 Unifs <- c("False")#c("True","False") #initial SAD: uniform or skewed
 DeltasAlphas <- c(0.1, 0.3)#, 0.2)#0.2, 0.4)#, 0.4) #c(0, 0.1, 0.2)c(0.49)#
 Corrs <- c(-1,0,1)
-Slope <- 3 #slope of dose-response curves for toxicity
 
-Combinations <- expand.grid(Concs, Alphas, Unifs,
+#where do the counts start in the files with counts? 
+#take into account that fake time (needed for bdef function), treatment, 
+#and three EF scenarios need to be added
+CountColsStart <- 6
+#starting and ending dates considered for analysis 
+#(exclude before and after exposure period)
+StartDates <- -1e10
+EndDates <- 1e10
+#names given to indicate time in the data files
+TimeNames <- "Time"
+#names given to indicate treatment in the data files
+TreatmentNames <- "Treatment"
+#what will this analysis use as endpoints?
+#..."Richness" and "EF" should be listed as 1 and 2 in this vector
+endpoints <- c("Richness", "EF_0", "EF_1", 
+               "EF__1", "Sim")
+
+Combinations <- expand.grid(Alphas, Unifs,
                             Corrs, DeltasAlphas)
-indLow <- which((Combinations$Var2==0.2)&(Combinations$Var5==0.1))
-indHigh <- which((Combinations$Var2==0.6)&(Combinations$Var5==0.3))
+indLow <- which((Combinations$Var1==0.2)&(Combinations$Var4==0.1))
+indHigh <- which((Combinations$Var1==0.6)&(Combinations$Var4==0.3))
 
 Combinations <- Combinations[c(indLow, indHigh),]
 
-AllData <- NULL
+#allocate object to store effects on ef 
+#...occurring with no effect on richness
+EFEffectsAtInvarRichness <- NULL
+#allocate object to store effects on similarity with control
+#...occurring with no effect on richness
+EFEffectsAtInvarRichnessComp <- NULL
+#allocate object to store dose responses for "Richness" and "EF"
+DoseResps <- NULL
+#allocate object to store dose response data for "Richness" and "EF"
+DoseRespDatas <- NULL
 
-for (Comb in c(1:nrow(Combinations)))
+for (i in c(1:nrow(Combinations)))
 {
-  Conc <- Combinations[Comb,1]
-  Alpha <- Combinations[Comb,2]
-  Unif <- Combinations[Comb,3]
-  Corr <- Combinations[Comb,4]
-  DeltaAlphas <- Combinations[Comb,5]
-  
-  source("AbundancesAndRichness.R")
-  
-  #EF and the bloody correlations with f
-  #first open ecxs:
-  ECs <- read.table(paste(ResultsPath,"EC50ga",
-                          Alpha,
-                          "d",Unif,
-                          "c",Corr,
-                          "delta",DeltaAlphas,sep=""))
-  ECorder <- apply(ECs,2, rank)
+  Alpha <- Combinations[i,1]
+  Unif <- Combinations[i,2]
+  Corr <- Combinations[i,3]
+  DeltaAlphas <- Combinations[i,4]
 
-  #No corr:
-  f <- ECorder/ECorder #just one in case no correlations. Biovolume-specific fs sum to 20
-  EF_i <- Abundances*f
-  EFcontrol_i <- Abundancescontrol*f
-  EF_0 <- colSums(EF_i)
-  EFcontrol_0 <- colSums(EFcontrol_i)
-  #corr>0: higher EC means higher f. Biovolume-specific fs still sum to 20. 
-  f <- ECorder/210*20 #
-  EF_i <- Abundances*f
-  EFcontrol_i <- Abundancescontrol*f
-  EF_1 <- colSums(EF_i)
-  EFcontrol_1 <- colSums(EFcontrol_i)
-  #corr<0: higher EC means lower f. Biovolume-specific fs still sum to 20. 
-  f <- (21-ECorder)/210*20 #
-  EF_i <- Abundances*f
-  EFcontrol_i <- Abundancescontrol*f
-  EF__1 <- colSums(EF_i)
-  EFcontrol__1 <- colSums(EFcontrol_i)
+  #allocate object for later bdef application
+  Data <- NULL
   
-  AllData <- rbind(AllData,
-                   cbind(c(1:Iterations), Richness, Richnesscontrol, Conc, 
-                         Alpha, Unif, Corr, DeltaAlphas, 
-                         EF_0, EFcontrol_0,
-                         EF_1, EFcontrol_1, EF__1, EFcontrol__1))
-  
+  for (Conc in Concs)
+  {
+    #open files with simulated abundances and
+    #...transpose to make ready for BDEF function
+    source("GetAbundances.R")  
+    Abundances <- t(Abundances)
+    #calculate EF based on abundances
+    source("CalculateEF.R")
+    Data <- rbind(Data, cbind(1, match(Conc, Concs), 
+                              EF_0, EF_1, EF__1, Abundances))
+  }
+  colnames(Data)[c(1:2)] <- c("Time", "Treatment")
+  Data <- as.data.frame(Data)
+  Result <- BDEF(data=Data, 
+                 CountCols=CountColsStart,          
+                 TimeName=TimeNames,                
+                 TreatmentName=TreatmentNames,
+                 Affected = StartDates-1e-10, #have to substract
+                 NoAffected = EndDates+1e-10, #or add small nr cause 
+                 endpoints = "Richness",          #< and > in BDEF function
+                 x=0)
+  ConcsNew <- Concs
+  if (min(Concs)==0) #Concentrations will be log-transformed later 
+  {                       #so we need to replace zero by a low nr.
+    ConcsNew[1] <- Concs[2]/2
+  }
+  #here's the log transform
+  Result$Conc <- log10(ConcsNew[as.numeric(Result$Treatment)]) 
+  source("DRM.r")
 }
 
-colnames(AllData) <- c("Iteration","Richness", "Richnesscontrol", 
-                       "Dose", "InterspecificCompetition",
-                       "Uniform", "Correlation", "DeltaAlpha",
-                       "EF_0", "EFcontrol_0", "EF_1", "EFcontrol_1",
-                       "EF__1", "EFcontrol__1")
+colnames(DoseResps) <- c("Study", "Scaled Log Concentration", 
+                         "Effect on mean richness", 
+                         "Effect on mean richness -", 
+                         "Effect on mean richness +",
+                         "Effect on mean EF", 
+                         "Effect on mean EF -", 
+                         "Effect on mean EF +")
 
-AllDataDF <- as.data.frame(AllData)
-AllDataDF$InterspecificCompetition <- as.factor(AllDataDF$InterspecificCompetition)
-AllDataDF$DeltaAlpha <- as.factor(AllDataDF$DeltaAlpha)
-AllDataDF$Correlation <- as.factor(AllDataDF$Correlation)
-AllDataDF$Iteration <- as.factor(AllDataDF$Iteration)
+warning("Only no correlation implemented in analysis!")
 
-#Just check how many survived
-Rs <- AllDataDF$Richnesscontrol[which(AllDataDF$InterspecificCompetition==0.2)]
-survival1 <- histogram(Rs, breaks=10, xlab="Final species richness", xlab.top="A")
-Rs <- AllDataDF$Richnesscontrol[which(AllDataDF$InterspecificCompetition==0.6)]
-survival2 <- histogram(Rs, breaks=10, xlab="Final species richness", xlab.top="B")
-
-#Now loop over subsets 
-Corrs <- c(0,-1,1)
-Combinations <- expand.grid(DeltasAlphas,Alphas,Corrs)
-indLow <- which((Combinations$Var2==0.2)&(Combinations$Var1==0.1))
-indHigh <- which((Combinations$Var2==0.6)&(Combinations$Var1==0.3))
-Combinations <- Combinations[c(indLow,indHigh),]
-
-quartz("",6,9,type="pdf",file=paste(sims, "LikeData.pdf"))
-positions=list(c(0, 2/3, 1/2, 1), c(1/2, 2/3, 1, 1),
-               c(0, 1/3, 1/2, 2/3), c(1/2, 1/3, 1, 2/3), 
-               c(0, 0, 1/2, 1/3), c(1/2, 0, 1, 1/3))
-ordering <- c(1,4,2,5,3,6)
-
-for (i in c(1:length(ordering)))
-{
-  ind <- which((AllDataDF$InterspecificCompetition==Combinations[ordering[i],2])&(AllDataDF$DeltaAlpha==Combinations[ordering[i],1])&(AllDataDF$Correlation==Combinations[ordering[i],3]))
-  AllDataDF_i <- AllDataDF[ind,]
-  #First make richness dose-response
-  Form0 <- paste0("s(Dose, by=as.numeric(Iteration == ",c(1:Iterations),
-                  ", k=3))",sep="", collapse = "+")
-  Form  <- paste("Richness~Iteration+", Form0, sep="")
-  Model <- gam(as.formula(Form), data=AllDataDF_i)
-  PredRichness<- predict(Model, type="response")
-  #convert to effect on richness
-  PredRichnessControl <- rep(PredRichness[c(1:Iterations)], length(Concs))
-  PredRichness<- PredRichness - PredRichnessControl
-  PredRichness<- PredRichness/PredRichnessControl
-
-  q <- 0
-  for (lastbit in c("__1", "_1","_0"))
-  {
-    q <- q+1
-    #make gam dose-response for all Iterations at once (but per Iteration!)
-    Form0 <- paste0("s(Dose, by=as.numeric(Iteration == ",c(1:Iterations),
-                  ", k=3))",sep="", collapse = "+")
-    Form  <- paste("EF",lastbit, "~Iteration+", Form0, sep="")
-    Model <- gam(as.formula(Form), data=AllDataDF_i)
-    PredEF<- predict(Model, type="response")
-    #convert to effect on EF
-    PredEFControl <- rep(PredEF[c(1:Iterations)], length(Concs))
-    PredEF<- PredEF - PredEFControl
-    PredEF<- PredEF/PredEFControl
-    
-    form <- "PredEF~PredRichness"
-    test <-  xyplot(as.formula(form), type="l",
-                    xlab.top=LETTERS[i],
-                    groups=Iteration,
-                    panel = function(...) {
-                      panel.xyplot(...)
-                      panel.abline(h=0)
-                      panel.abline(v=0)
-                    }, ylab="Effect on EF", xlab="Effect on richness",
-                    par.settings = simpleTheme(col=rainbow(3)[q]),
-                    data=cbind(AllDataDF_i,
-                               PredRichness=PredRichness,
-                               PredEF=PredEF), 
-                    ylim=c(-1,1), xlim=c(-1,1))
-    print(test, position=positions[[i]], more=TRUE)
-  }
-}
-dev.off()
-
-quartz("",6,9,type="pdf",file=paste(sims, "LikeData_Res.pdf"))
-
-#Now plot the residuals of the linear models
-for (i in c(1:length(ordering)))
-{
-  q <- 0
-  for (lastbit in c("__1", "_1","_0"))
-    {
-    q <- q+1
-    print(get(paste(i,q,sep="_")), position=positions[[i]], more=TRUE)
-    }
-}  
-dev.off()
-
-quartz("",6,9,type="pdf",file=paste(sims, "LikeData_Slopes.pdf"))
-
-#Now plot the slopes of the linear models
-for (i in c(1:length(ordering)))
-{
-  q <- 0
-  for (lastbit in c("__1", "_1","_0"))
-  {
-    q <- q+1
-    print(get(paste(i,q,"Slope",sep="_")), position=positions[[i]], more=TRUE)
-    print(get(paste(i,q,"Slope_2",sep="_")), position=positions[[i]], more=TRUE)
-  }
-}  
-dev.off()
-
-quartz("",6,9,type="pdf",file=paste(sims, "LikeData_Debts.pdf"))
-
-#Now plot the debts/credits of the linear models
-for (i in c(1:length(ordering)))
-{
-  q <- 0
-  for (lastbit in c("__1", "_1","_0"))
-  {
-    q <- q+1
-    print(get(paste(i,q,"Intercept",sep="_")), position=positions[[i]], more=TRUE)
-    print(get(paste(i,q,"Intercept_2",sep="_")), position=positions[[i]], more=TRUE)
-    
-  }
-}  
-dev.off()
-
-quartz("",6,3,type="pdf",file=paste(sims, "Survival.pdf"))
-print(survival1, position=c(0,0,0.5,1), more=TRUE)
-print(survival2, position=c(0.5,0,1,1))
-dev.off()
 
 
 

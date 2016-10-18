@@ -7,8 +7,7 @@ source("/Users/frederik/Documents/work/functions/Functions.R")
 source("/Users/frederik/Documents/work/BD_EF/data-analysis/PhytData.R")
 #specify destination for plots and other output
 ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
-#color specs: input for all possible color codes are generated here,
-#for later input into rgb
+#color specs: 
 cols <- c("burlywood4", "cadetblue", "chartreuse", 
           "chartreuse4", "chocolate1", "cyan",
           "darkblue", "darkgoldenrod1", "darkgray",
@@ -27,30 +26,30 @@ TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.",
 #names given to indicate treatment in the data files
 TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
-#..."Richness" and "EF" should be listed as 1 and 2 in this vector
 endpoints <- c("Richness", "EF", "Sim")
-
-#allocate object to store effects on ef 
+#these will be plotted in dose-response mode
+selectedEndpoints <- c("Richness", "EF")
+#and effects on these will be plotted for cases where richness is not affected
+selectedEndpointsNotRichness <- c("EF", "Sim")
+  
+#allocate object to store effects on endpoint 
 #...occurring with no effect on richness
-EFEffectsAtInvarRichness <- NULL
-#allocate object to store effects on similarity with control
-#...occurring with no effect on richness
-EFEffectsAtInvarRichnessComp <- NULL
-#allocate object to store dose responses for "Richness" and "EF"
+EffectsAtInvarRichness <- NULL
+#allocate object to store dose responses for endpoints
 DoseResps <- NULL
-#allocate object to store dose response data for "Richness" and "EF"
+#allocate object to store dose response data for endpoints
 DoseRespDatas <- NULL
-#allocate object to store BEF trajectories
-BEF <- NULL
+#YES, you want to plot the data too 
+dataToo <- TRUE
 
 for (i in c(1:length(PhytData)))
 {
   #Reading of data and EF calc
   Data   <- read.delim(PhytData[i])
-  #Calculation of effects 
-  Result <- BDEF(data=Data, #will throw a warning cause similarity not yet done 
-                 CountCols=CountColsStart[i],           #correctly. No prob 
-                 TimeName=TimeNames[i],                 #cause not used for now.
+  #Calculation of richness (similarity automatically done if counts present)
+  Result <- BDEF(data=Data,  
+                 CountCols=CountColsStart[i],            
+                 TimeName=TimeNames[i],                 
                  TreatmentName=TreatmentNames[i],
                  Affected = StartDates[i]-1e-10, #have to substract
                  NoAffected = EndDates[i]+1e-10, #or add small nr cause 
@@ -64,20 +63,16 @@ for (i in c(1:length(PhytData)))
   source("DRM.r")
 }
 
-colnames(DoseResps) <- c("Study", "Scaled Log Concentration", 
-                         "Effect on mean richness", 
-                         "Effect on mean richness -", 
-                         "Effect on mean richness +",
-                         "Effect on mean EF", 
-                         "Effect on mean EF -", 
-                         "Effect on mean EF +")
+#get indices where effect on richness not different from zero
+#...as decided based on the standard errors encompassing 0
+#...and track
+Ind <- which((DoseResps[,"up Richness"]>0)*(DoseResps[,"low Richness"]<0)==1)
+if (length(Ind)>0) 
+{
+  EffectsAtInvarRichness <- DoseResps[Ind,]
+}
 
-colnames(DoseRespDatas) <- c("Study", "Scaled Log Concentration",
-                             "Effect on mean richness",
-                             "Effect on mean EF")
-
-colnames(BEF)       <- c("Study", "Richness", "EF")
-
+source("Plots.R")
 
 
 

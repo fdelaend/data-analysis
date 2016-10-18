@@ -9,9 +9,11 @@ sims <- "VI"
 ResultsPath <- paste("/Users/frederik/Documents/work/BD_EF/simulations",sims,"/output/",sep="")#Say where the results are
 #specify destination for plots and other output
 ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
-#color specs: input for all possible color codes are generated here,
-#for later input into rgb
-cols <- rgb(runif(0,1,100), runif(0,1,100), runif(0,1,100), 1)
+#color specs: 
+cols <- c("burlywood4", "cadetblue", "chartreuse", 
+          "chartreuse4", "chocolate1", "cyan",
+          "darkblue", "darkgoldenrod1", "darkgray",
+          "firebrick1", "gray0", "hotpink")
 Iterations <- 50 #nr of iterations per level
 n <- 20#initial nr of species
 Concs <- seq(0, 200, 20) #seq(0, 200, 20)#tested concentrations
@@ -33,9 +35,13 @@ TimeNames <- "Time"
 #names given to indicate treatment in the data files
 TreatmentNames <- "Treatment"
 #what will this analysis use as endpoints?
-#..."Richness" and "EF" should be listed as 1 and 2 in this vector
-endpoints <- c("Richness", "EF_0", "EF_1", 
-               "EF__1", "Sim")
+#what will this analysis use as endpoints?
+endpoints <- c("Richness", "EF_1", "Sim")
+#these will be plotted in dose-response mode
+selectedEndpoints <- c("Richness", "EF_1")
+#and effects on these will be plotted for cases where richness is not affected
+selectedEndpointsNotRichness <- c("EF_1", "Sim")
+#"EF_0", "EF_1", "EF__1"
 
 Combinations <- expand.grid(Alphas, Unifs,
                             Corrs, DeltasAlphas)
@@ -44,16 +50,15 @@ indHigh <- which((Combinations$Var1==0.6)&(Combinations$Var4==0.3))
 
 Combinations <- Combinations[c(indLow, indHigh),]
 
-#allocate object to store effects on ef 
+#allocate object to store effects on endpoint 
 #...occurring with no effect on richness
-EFEffectsAtInvarRichness <- NULL
-#allocate object to store effects on similarity with control
-#...occurring with no effect on richness
-EFEffectsAtInvarRichnessComp <- NULL
-#allocate object to store dose responses for "Richness" and "EF"
+EffectsAtInvarRichness <- NULL
+#allocate object to store dose responses for endpoints
 DoseResps <- NULL
-#allocate object to store dose response data for "Richness" and "EF"
+#allocate object to store dose response data for endpoints
 DoseRespDatas <- NULL
+#NO, you don't want to plot the simulated data
+dataToo <- FALSE
 
 for (i in c(1:nrow(Combinations)))
 {
@@ -96,15 +101,14 @@ for (i in c(1:nrow(Combinations)))
   source("DRM.r")
 }
 
-colnames(DoseResps) <- c("Study", "Scaled Log Concentration", 
-                         "Effect on mean richness", 
-                         "Effect on mean richness -", 
-                         "Effect on mean richness +",
-                         "Effect on mean EF", 
-                         "Effect on mean EF -", 
-                         "Effect on mean EF +")
-
-warning("Only no correlation implemented in analysis!")
+#get indices where effect on richness not different from zero
+#...as decided based on the standard errors encompassing 0
+#...and track
+Ind <- which((DoseResps[,"up Richness"]>0)*(DoseResps[,"low Richness"]<0)==1)
+if (length(Ind)>0) 
+{
+  EffectsAtInvarRichness <- DoseResps[Ind,]
+}
 
 
 

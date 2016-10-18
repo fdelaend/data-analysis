@@ -1,13 +1,19 @@
-#try DRMs for both endpoints
-
-Uppers  <- NULL
-Lowers  <- NULL
-Means <- NULL
-DoseResp<- NULL
-DoseRespData <- NULL
+#try DRMs for all endpoints
+#length of concentration vector to simulate effect for with gams
+LengthNewConcs <- 1000 
+#allocate empty objects for dose-response models and data
+#*3 because you want to store mean, low, and upper limits
+DoseResp<- mat.or.vec(LengthNewConcs, length(endpoints)*3)*NA 
+DoseRespData <- mat.or.vec(length(unique(Result$Conc)),
+                           length(endpoints))*NA 
+colnames(DoseResp) <- c(1:ncol(DoseResp))
+colnames(DoseRespData) <- c(1:ncol(DoseRespData))
 
 for (endpoint in endpoints)
 {
+  colnames(DoseResp)[c(1:3)+3*(match(endpoint, endpoints)-1)] <- paste(c("mean", "low", "up"), endpoint)
+  colnames(DoseRespData)[match(endpoint, endpoints)] <- endpoint
+
   # first test if endpoint available
   if (endpoint%in% colnames(Result))
   {
@@ -22,7 +28,8 @@ for (endpoint in endpoints)
     Model <- gam(as.formula(paste(endpoint," ~ s(Conc,k=3)")), 
                  family=Gamma(), data=ResultEndpoint)
     #predict with dose response along conc gradient
-    NewConcs <- seq(min(Result$Conc), max(Result$Conc), length.out = 1000)
+    NewConcs <- seq(min(Result$Conc), max(Result$Conc), 
+                    length.out = LengthNewConcs)
     Preds <- predict(Model, type="response", se=T, 
                      newdata=data.frame(Conc=NewConcs))
     #calculate mean prediction, 
@@ -35,51 +42,28 @@ for (endpoint in endpoints)
     Upper <- (Upper-Preds$fit[1])/Preds$fit[1]
     Lower <- (Lower-Preds$fit[1])/Preds$fit[1]
     #Now track for later plotting
-    DoseResp <- cbind(DoseResp, 
-                      Mean, Lower, Upper)
-    #now track differently for analysis on effects at invariant richness
-    Uppers<- cbind(Uppers, Upper) 
-    Lowers<- cbind(Lowers, Lower) 
-    Means<- cbind(Means, Mean)
+    DoseResp[,paste(c("mean", "low", "up"), endpoint)] <- cbind(Mean, Lower, Upper)
     
     #track original data for all studies of effects on richness and EF
     #...important: divide data by PREDICTED control, not by OBSERVED control!
     #...reason: the predicted control is a better estimator of the real control
     #...because it accounts for the whole dose-response shape.
-    if (endpoint %in%c("Richness", "EF"))
-    {
-      DoseRespData <- cbind(DoseRespData, 
-                            (ResultEndpoint[,2]-Preds$fit[1])/Preds$fit[1])
-    }
-    
+    DoseRespData[,endpoint] <- (ResultEndpoint[,2]-Preds$fit[1])/Preds$fit[1]
   } 
 }
-#check if Means only 2 cols. If so, add 3rd one with NA Dissim values
-if (ncol(Means)==2) {Means <- cbind(Means, NA)}
 
-DoseResp <- cbind((NewConcs-NewConcs[1])/(max(NewConcs)-min(NewConcs)), 
+DoseResp <- cbind("Scaled Log Concentration"=(NewConcs-NewConcs[1])/(max(NewConcs)-min(NewConcs)), 
                   DoseResp)
-DoseRespData <- cbind((ResultEndpoint$Conc-ResultEndpoint$Conc[1])/(max(ResultEndpoint$Conc)-min(ResultEndpoint$Conc)), 
+DoseRespData <- cbind("Scaled Log Concentration"=(ResultEndpoint$Conc-ResultEndpoint$Conc[1])/(max(ResultEndpoint$Conc)-min(ResultEndpoint$Conc)), 
                       DoseRespData)
 
 #track dose responses: 1-7 because concentration+med,low,up for B and EF
 DoseResps <- rbind(DoseResps, 
-                   cbind(i, 
-                         DoseResp[,c(1:7)]))
+                   cbind("Study"=i, 
+                         DoseResp))
 
 #track dose response data
 DoseRespDatas <- rbind(DoseRespDatas,
-                       cbind(i, DoseRespData))
+                       cbind("Study"=i, 
+                             DoseRespData))
 
-#get indices where effect on richness not different from zero
-#...as decided based on the standard errors encompassing 0
-#...and track
-Ind <- which((Uppers[,1]>0)*(Lowers[,1]<0)==1)
-if (length(Ind)>0) 
-  {
-  EFEffectsAtInvarRichness <- rbind(EFEffectsAtInvarRichness,
-                                    cbind(i,Means[Ind,2],
-                                          Lowers[1,2], Uppers[1,2]))
-  EFEffectsAtInvarRichnessComp <- rbind(EFEffectsAtInvarRichnessComp,
-                                        cbind(i,Means[Ind,3])) 
-  }

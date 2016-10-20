@@ -25,7 +25,7 @@ for (endpoint in endpoints)
     ResultEndpoint <- aggregate(as.formula(form), data=Result, mean)
 
     #Now do the dose-response
-    Model <- gam(as.formula(paste(endpoint," ~ s(Conc,k=3)")), 
+    Model <- gam(as.formula(paste(endpoint," ~ s(Conc,k=4)")), 
                  family=Gamma(), data=ResultEndpoint)
     #predict with dose response along conc gradient
     NewConcs <- seq(min(Result$Conc), max(Result$Conc), 

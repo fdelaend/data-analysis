@@ -63,6 +63,8 @@ for (i in c(1:length(PhytData)))
   source("DRM.r")
 }
 
+#add systemTag so clear it's all 1 system within 1 Study
+DoseResps <- cbind(DoseResps, systemTag=DoseResps[,"Study"]^0)
 #get indices where effect on richness not different from zero
 #...as decided based on the standard errors encompassing 0
 #...and track

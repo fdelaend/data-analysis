@@ -5,7 +5,7 @@ require(mgcv)
 source("/Users/frederik/Documents/work/functions/Functions.R")
 #get locations of simulated data and corresponding substances and concentrations
 #...after specifying what simulations to use for analyses. 
-sims <- "VI"
+sims <- "VII"
 ResultsPath <- paste("/Users/frederik/Documents/work/BD_EF/simulations",sims,"/output/",sep="")#Say where the results are
 #specify destination for plots and other output
 ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
@@ -16,7 +16,7 @@ cols <- c("burlywood4", "cadetblue", "chartreuse",
           "firebrick1", "gray0", "hotpink")
 Iterations <- 50 #nr of iterations per level
 n <- 20#initial nr of species
-Concs <- seq(0, 200, 20) #seq(0, 200, 20)#tested concentrations
+Concs <- c(0.0, 10.0, 20.0, 40.0, 80.0, 160.0, 320.0)
 Alphas <- c(0.2,0.6)#c(0.2, 0.4, 0.6, 0.8)#c(0.5) #tested alphas #
 Unifs <- c("False")#c("True","False") #initial SAD: uniform or skewed
 DeltasAlphas <- c(0.1, 0.3)#, 0.2)#0.2, 0.4)#, 0.4) #c(0, 0.1, 0.2)c(0.49)#
@@ -36,11 +36,11 @@ TimeNames <- "Time"
 TreatmentNames <- "Treatment"
 #what will this analysis use as endpoints?
 #what will this analysis use as endpoints?
-endpoints <- c("Richness", "EF_1", "Sim")
+endpoints <- c("Richness", "EF_0", "Sim")
 #these will be plotted in dose-response mode
-selectedEndpoints <- c("Richness", "EF_1")
+selectedEndpoints <- c("Richness", "EF_0")
 #and effects on these will be plotted for cases where richness is not affected
-selectedEndpointsNotRichness <- c("EF_1", "Sim")
+selectedEndpointsNotRichness <- c("EF_0", "Sim")
 #"EF_0", "EF_1", "EF__1"
 
 Combinations <- expand.grid(Alphas, Unifs,
@@ -78,10 +78,10 @@ for (i in c(1:nrow(Combinations)))
     Abundances <- t(Abundances)
     #calculate EF based on abundances
     source("CalculateEF.R")
-    Data <- rbind(Data, cbind(1, match(Conc, Concs), 
+    Data <- rbind(Data, cbind(1, match(Conc, Concs), c(1:Iterations),
                               EF_0, EF_1, EF__1, Abundances))
   }
-  colnames(Data)[c(1:2)] <- c("Time", "Treatment")
+  colnames(Data)[c(1:3)] <- c("Time", "Treatment", "systemTag")
   Data <- as.data.frame(Data)
   Result <- BDEF(data=Data, 
                  CountCols=CountColsStart,          
@@ -90,6 +90,7 @@ for (i in c(1:nrow(Combinations)))
                  Affected = StartDates-1e-10, #have to substract
                  NoAffected = EndDates+1e-10, #or add small nr cause 
                  endpoints = "Richness",          #< and > in BDEF function
+                 systemTag= "systemTag",
                  x=0)
   ConcsNew <- Concs
   if (min(Concs)==0) #Concentrations will be log-transformed later 
@@ -98,18 +99,34 @@ for (i in c(1:nrow(Combinations)))
   }
   #here's the log transform
   Result$Conc <- log10(ConcsNew[as.numeric(Result$Treatment)]) 
-  source("DRM.r")
+  #and do immediately the transform to 0-1
+  Result$Conc <- (Result$Conc-min(Result$Conc))/(max(Result$Conc)-min(Result$Conc))
+  #now add simulated effects for endpoints
+  #first get control
+  ControlTemp <- Result[which(Result$Treatment==1),endpoints]
+  #replace NAs for Similarity with 1's. 
+  ControlTemp$Sim <- 1
+  Control <- ControlTemp
+  #copy control and stack vertically
+  for (Conc in Concs[c(2:length(Concs))]) {Control <- rbind(Control,ControlTemp)}
+  #calculate effect sizes
+  Result <- cbind(Result, (Result[,endpoints]-Control)/Control)
+  DoseResps <- rbind(DoseResps, cbind(Study=i, Result))
 }
+
+colnames(DoseResps)[which(colnames(DoseResps)=="Conc")] <- c("Scaled Log Concentration")
+colnames(DoseResps)[c((ncol(DoseResps)-2):ncol(DoseResps))] <- paste("mean", endpoints)
 
 #get indices where effect on richness not different from zero
 #...as decided based on the standard errors encompassing 0
 #...and track
-Ind <- which((DoseResps[,"up Richness"]>0)*(DoseResps[,"low Richness"]<0)==1)
+Ind <- which(DoseResps[,"mean Richness"]==0)
 if (length(Ind)>0) 
 {
   EffectsAtInvarRichness <- DoseResps[Ind,]
 }
 
+source("Plots.R")
 
 
 

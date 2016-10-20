@@ -20,14 +20,17 @@ for (endpoint in selectedEndpoints)
                         c("Scaled Log Concentration",
                           endpoint)]
     if (dataToo) {points(xy[,1], xy[,2], col=cols[i])}
-    #The model predictions: mean, -, and +
-    xy <- DoseResps[which(DoseResps[,"Study"]==i),
-                    c("Scaled Log Concentration",
-                      paste("mean", endpoint))]
-    lines(xy[,1], xy[,2], lwd=1.5,
-          col=cols[i])
+    #The model predictions. If a "systemTag" column included, lines are 
+    #..plotted per system. 
+    for (systemType in unique(DoseResps[,"systemTag"]))
+      {
+        xy <- DoseResps[which((DoseResps[,"Study"]==i)&(DoseResps[,"systemTag"]==systemType)),
+                        c("Scaled Log Concentration",
+                          paste("mean", endpoint))]
+        lines(xy[,1], xy[,2], lwd=0.5,
+              col=cols[i])
+      }
   }
-  
 }
 
 for (endpoint in selectedEndpointsNotRichness)

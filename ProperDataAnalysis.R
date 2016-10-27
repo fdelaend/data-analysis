@@ -76,5 +76,6 @@ if (length(Ind)>0)
 
 source("Plots.R")
 
+dev.off()
 
 

@@ -5,7 +5,7 @@ require(mgcv)
 source("/Users/frederik/Documents/work/functions/Functions.R")
 #get locations of simulated data and corresponding substances and concentrations
 #...after specifying what simulations to use for analyses. 
-sims <- "VII"
+sims <- "V2"
 ResultsPath <- paste("/Users/frederik/Documents/work/BD_EF/simulations",sims,"/output/",sep="")#Say where the results are
 #specify destination for plots and other output
 ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
@@ -16,10 +16,10 @@ cols <- c("burlywood4", "cadetblue", "chartreuse",
           "firebrick1", "gray0", "hotpink")
 Iterations <- 50 #nr of iterations per level
 n <- 20#initial nr of species
-Concs <- c(0.0, 10.0, 20.0, 40.0, 80.0, 160.0, 320.0)
-Alphas <- c(0.2,0.6)#c(0.2, 0.4, 0.6, 0.8)#c(0.5) #tested alphas #
+Concs <- c(0.0, 20.0, 40.0, 80.0, 160.0, 320.0, 640.0)
+Alphas <- c(0.2,0.8)#c(0.2, 0.4, 0.6, 0.8)#c(0.5) #tested alphas #
 Unifs <- c("False")#c("True","False") #initial SAD: uniform or skewed
-DeltasAlphas <- c(0.1, 0.3)#, 0.2)#0.2, 0.4)#, 0.4) #c(0, 0.1, 0.2)c(0.49)#
+DeltasAlphas <- c(0)#, 0.2)#0.2, 0.4)#, 0.4) #c(0, 0.1, 0.2)c(0.49)#
 Corrs <- c(-1,0,1)
 
 #where do the counts start in the files with counts? 
@@ -36,17 +36,17 @@ TimeNames <- "Time"
 TreatmentNames <- "Treatment"
 #what will this analysis use as endpoints?
 #what will this analysis use as endpoints?
-endpoints <- c("Richness", "EF_0", "Sim")
+endpoints <- c("Richness", "EF_1", "Sim")
 #these will be plotted in dose-response mode
-selectedEndpoints <- c("Richness", "EF_0")
+selectedEndpoints <- c("Richness", "EF_1")
 #and effects on these will be plotted for cases where richness is not affected
-selectedEndpointsNotRichness <- c("EF_0", "Sim")
+selectedEndpointsNotRichness <- c("EF_1", "Sim")
 #"EF_0", "EF_1", "EF__1"
 
 Combinations <- expand.grid(Alphas, Unifs,
                             Corrs, DeltasAlphas)
-indLow <- which((Combinations$Var1==0.2)&(Combinations$Var4==0.1))
-indHigh <- which((Combinations$Var1==0.6)&(Combinations$Var4==0.3))
+indLow <- which((Combinations$Var1==0.2)&(Combinations$Var4==0))
+indHigh <- which((Combinations$Var1==0.8)&(Combinations$Var4==0))
 
 Combinations <- Combinations[c(indLow, indHigh),]
 
@@ -118,15 +118,17 @@ colnames(DoseResps)[which(colnames(DoseResps)=="Conc")] <- c("Scaled Log Concent
 colnames(DoseResps)[c((ncol(DoseResps)-2):ncol(DoseResps))] <- paste("mean", endpoints)
 
 #get indices where effect on richness not different from zero
-#...as decided based on the standard errors encompassing 0
-#...and track
-Ind <- which(DoseResps[,"mean Richness"]==0)
+#...and track. 
+Ind <- which((DoseResps[,"mean Richness"]==0)&(DoseResps$Treatment!=1))
 if (length(Ind)>0) 
 {
   EffectsAtInvarRichness <- DoseResps[Ind,]
 }
 
 source("Plots.R")
-
+legend("topleft", cex=0.7,
+       paste("alpha=",Combinations[,1],"; corr=",Combinations[,3]),
+       pch="", lwd=2, col=cols[1:nrow(Combinations)])
+dev.off()
 
 

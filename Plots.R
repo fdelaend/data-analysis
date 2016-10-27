@@ -20,16 +20,24 @@ for (endpoint in selectedEndpoints)
                         c("Scaled Log Concentration",
                           endpoint)]
     if (dataToo) {points(xy[,1], xy[,2], col=cols[i])}
-    #The model predictions. If a "systemTag" column included, lines are 
-    #..plotted per system. 
-    for (systemType in unique(DoseResps[,"systemTag"]))
-      {
-        xy <- DoseResps[which((DoseResps[,"Study"]==i)&(DoseResps[,"systemTag"]==systemType)),
-                        c("Scaled Log Concentration",
-                          paste("mean", endpoint))]
-        lines(xy[,1], xy[,2], lwd=0.5,
-              col=cols[i])
-      }
+    #The model predictions. Aggregate makes sure summary stat(s) are done
+    #in case there are systemTags
+    xyOriginal <- DoseResps[which(DoseResps[,"Study"]==i),
+                    c("Scaled Log Concentration",
+                      paste("mean", endpoint))]
+    xy <- aggregate(xyOriginal[,paste("mean", endpoint)], 
+                        by=list(xyOriginal[,"Scaled Log Concentration"]),
+                        FUN=mean)
+    lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
+    #xy <- aggregate(xyOriginal[,paste("mean", endpoint)], 
+    #                by=list(xyOriginal[,"Scaled Log Concentration"]),
+    #                FUN=min)
+    #lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
+    #xy <- aggregate(xyOriginal[,paste("mean", endpoint)], 
+    #                by=list(xyOriginal[,"Scaled Log Concentration"]),
+    #                FUN=max)
+    #lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
+    #  
   }
 }
 
@@ -39,7 +47,9 @@ for (endpoint in selectedEndpointsNotRichness)
        EffectsAtInvarRichness[,paste("mean",endpoint)], 
        main="TEMP",
        ylim=c(-1.1,1.1),
-       col=cols[EffectsAtInvarRichness[,"Study"]],
+       col=rgb(EffectsAtInvarRichness$`Scaled Log Concentration`,
+               1-EffectsAtInvarRichness$`Scaled Log Concentration`,
+               0,1),
        xlab="Study", ylab=paste("Effect on", endpoint,
        " \n at invariant richness"),
        xaxt="n",
@@ -51,5 +61,4 @@ for (endpoint in selectedEndpointsNotRichness)
   
 }
 
-dev.off()
 

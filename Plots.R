@@ -1,10 +1,6 @@
 #get nr of studies from i
 nrOfStudies <- i
 
-quartz("",6,6,type="pdf",
-       file=paste(ResultsFolder,"Test.pdf",sep=""))
-par(mar=c(5,5,2,0.5), las=1, mfrow=c(2,2))
-
 #First dose-responses for SelectedEndpoints only
 for (endpoint in selectedEndpoints)
 {
@@ -12,7 +8,7 @@ for (endpoint in selectedEndpoints)
                                   selectedEndpoints)],
        xlim=c(0,1), ylim=c(-1,1), 
        pch=19, xlab="Log concentration (scaled 0-1)", 
-       ylab=paste("Effect on", endpoint))
+       ylab=paste("Effect on", YLABs[endpoint]))
   for (i in c(1:nrOfStudies))
   {
     #The data
@@ -24,16 +20,16 @@ for (endpoint in selectedEndpoints)
     #in case there are systemTags
     xyOriginal <- DoseResps[which(DoseResps[,"Study"]==i),
                     c("Scaled Log Concentration",
-                      paste("mean", endpoint))]
-    xy <- aggregate(xyOriginal[,paste("mean", endpoint)], 
+                      paste("mean", endpoint, sep=""))]
+    xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
                         by=list(xyOriginal[,"Scaled Log Concentration"]),
                         FUN=mean)
     lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
-    #xy <- aggregate(xyOriginal[,paste("mean", endpoint)], 
+    #xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
     #                by=list(xyOriginal[,"Scaled Log Concentration"]),
     #                FUN=min)
     #lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
-    #xy <- aggregate(xyOriginal[,paste("mean", endpoint)], 
+    #xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
     #                by=list(xyOriginal[,"Scaled Log Concentration"]),
     #                FUN=max)
     #lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
@@ -43,14 +39,13 @@ for (endpoint in selectedEndpoints)
 
 for (endpoint in selectedEndpointsNotRichness)
 {
-  plot(EffectsAtInvarRichness[,"Study"],
-       EffectsAtInvarRichness[,paste("mean",endpoint)], 
-       main="TEMP",
-       ylim=c(-1.1,1.1),
-       col=rgb(EffectsAtInvarRichness$`Scaled Log Concentration`,
-               1-EffectsAtInvarRichness$`Scaled Log Concentration`,
-               0,1),
-       xlab="Study", ylab=paste("Effect on", endpoint,
+  form <- paste("mean",endpoint, " ~ as.factor(Study)", sep="")
+  boxplot(as.formula(form), data=EffectsAtInvarRichness,
+       main=LETTERS[2+match(endpoint,
+                          selectedEndpointsNotRichness)],
+       ylim=c(-1.1,1.1), border="transparent",
+       col=cols,#[EffectsAtInvarRichness[,"Study"]],
+       xlab=XLAB, ylab=paste("Effect on", YLABs[endpoint],
        " \n at invariant richness"),
        xaxt="n",
        pch=15)

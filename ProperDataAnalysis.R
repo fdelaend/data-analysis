@@ -68,14 +68,23 @@ DoseResps <- cbind(DoseResps, systemTag=DoseResps[,"Study"]^0)
 #get indices where effect on richness not different from zero
 #...as decided based on the standard errors encompassing 0
 #...and track
-Ind <- which((DoseResps[,"up Richness"]>0)*(DoseResps[,"low Richness"]<0)==1)
+Ind <- which((DoseResps[,"upRichness"]>0)*(DoseResps[,"lowRichness"]<0)==1)
 if (length(Ind)>0) 
 {
   EffectsAtInvarRichness <- DoseResps[Ind,]
 }
 
+quartz("",5,5,type="pdf",
+       file=paste(ResultsFolder,"TestData.pdf",sep=""))
+par(mar=c(3,4,2,0.5), las=1, mfrow=c(2,2), 
+    tck=-0.02, mgp=c(2,0.5,0))
+XLAB <- "Study"
+YLABs <- c("Richness", "EF", "Similarity")
+names(YLABs) <- endpoints
 source("Plots.R")
-
+#legend("topleft", cex=0.7,
+#       paste("Study", c(1:length(PhytData))), ncol=2,
+#       pch="", lwd=2, col=cols[1:nrow(Combinations)])
 dev.off()
 
 

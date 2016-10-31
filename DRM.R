@@ -11,7 +11,8 @@ colnames(DoseRespData) <- c(1:ncol(DoseRespData))
 
 for (endpoint in endpoints)
 {
-  colnames(DoseResp)[c(1:3)+3*(match(endpoint, endpoints)-1)] <- paste(c("mean", "low", "up"), endpoint)
+  colnames(DoseResp)[c(1:3)+3*(match(endpoint, endpoints)-1)] <- paste(c("mean", "low", "up"), 
+                                                                       endpoint, sep="")
   colnames(DoseRespData)[match(endpoint, endpoints)] <- endpoint
 
   # first test if endpoint available
@@ -42,7 +43,8 @@ for (endpoint in endpoints)
     Upper <- (Upper-Preds$fit[1])/Preds$fit[1]
     Lower <- (Lower-Preds$fit[1])/Preds$fit[1]
     #Now track for later plotting
-    DoseResp[,paste(c("mean", "low", "up"), endpoint)] <- cbind(Mean, Lower, Upper)
+    DoseResp[,paste(c("mean", "low", "up"), 
+                    endpoint, sep="")] <- cbind(Mean, Lower, Upper)
     
     #track original data for all studies of effects on richness and EF
     #...important: divide data by PREDICTED control, not by OBSERVED control!

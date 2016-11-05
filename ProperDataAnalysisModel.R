@@ -129,7 +129,6 @@ XLAB <- "Case"
 YLABs <- c("Richness", "EF,-1", "EF,0", "EF,+1", "Similarity")
 names(YLABs) <- endpoints
 source("Plots.R")
-#Now make the legend
 legend(1,1.2, expression(alpha), col="transparent", lwd=1, seg.len=0.5,
        bty="n")
 legend(4,1.2, expression(alpha), col="transparent", lwd=1, seg.len=0.5,
@@ -156,5 +155,10 @@ legend(5,0.8, Combinations[5,3], col="transparent", lwd=2, bty="n", seg.len=0.5)
 legend(5,0.6, Combinations[6,3], col="transparent", lwd=2, bty="n", seg.len=0.5)
 
 dev.off()
+#expression(paste(alpha,"=",
+#                 Combinations[,1],";",
+#                 rho,"=",Combinations[,3])),
+#pch="", lwd=2, col=cols[1:nrow(Combinations)])
+
 
 

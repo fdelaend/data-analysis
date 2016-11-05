@@ -23,7 +23,7 @@ for (endpoint in selectedEndpoints)
                       paste("mean", endpoint, sep=""))]
     xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
                         by=list(xyOriginal[,"Scaled Log Concentration"]),
-                        FUN=mean)
+                        FUN=median)
     lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
     #xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
     #                by=list(xyOriginal[,"Scaled Log Concentration"]),
@@ -43,7 +43,7 @@ for (endpoint in selectedEndpointsNotRichness)
   boxplot(as.formula(form), data=EffectsAtInvarRichness,
        main=LETTERS[2+match(endpoint,
                           selectedEndpointsNotRichness)],
-       ylim=c(-1.1,1.1), border="transparent",
+       ylim=c(-1.1,1.1), border="grey",
        col=cols,#[EffectsAtInvarRichness[,"Study"]],
        xlab=XLAB, ylab=paste("Effect on", YLABs[endpoint],
        " \n at invariant richness"),

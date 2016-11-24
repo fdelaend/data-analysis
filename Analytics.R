@@ -36,8 +36,7 @@ plotDeltaEF <- function(alpha, mu2, f2, e2,
     coexControl <- (mur < -1/alpha)*(mur > -alpha)
     deltaEFCase <-deltaEF(alpha, mu2, f2, e2,
                           er=er, b=b, c=c)
-    deltaEFCase <- deltaEFCase*coexStress
-    deltaEFCase[which(coexControl==0)] <- NA
+    deltaEFCase[which(coexControl+coexStress==0)] <- NA
     colour <- i
     colour <- colour/length(ers)
     lines(alpha,deltaEFCase, col=rgb(red=colour, 

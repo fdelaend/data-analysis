@@ -30,7 +30,7 @@ endpoints <- c("Richness", "EF", "Sim")
 #these will be plotted in dose-response mode
 selectedEndpoints <- c("Richness", "EF")
 #and effects on these will be plotted for cases where richness is not affected
-selectedEndpointsNotRichness <- c("EF", "Sim")
+selectedEndpointsNotRichness <- c("EF")#, "Sim")
   
 #allocate object to store effects on endpoint 
 #...occurring with no effect on richness
@@ -74,17 +74,17 @@ if (length(Ind)>0)
   EffectsAtInvarRichness <- DoseResps[Ind,]
 }
 
-quartz("",5,5,type="pdf",
+quartz("",7.5,2.5,type="pdf",
        file=paste(ResultsFolder,"TestData.pdf",sep=""))
-par(mar=c(3,4,2,0.5), las=1, mfrow=c(2,2), 
+par(mar=c(3,4,2,0.5), las=1, mfrow=c(1,3), 
     tck=-0.02, mgp=c(2,0.5,0))
 XLAB <- "Study"
 YLABs <- c("Richness", "EF", "Similarity")
 names(YLABs) <- endpoints
 source("Plots.R")
-#legend("topleft", cex=0.7,
-#       paste("Study", c(1:length(PhytData))), ncol=2,
-#       pch="", lwd=2, col=cols[1:nrow(Combinations)])
+legend("topleft", cex=0.7,
+       paste("Study", c(1:length(PhytData))), ncol=3,
+       pch="", lwd=2, col=cols[1:length(PhytData)])
 dev.off()
 
 

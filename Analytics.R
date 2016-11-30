@@ -6,7 +6,7 @@ mu2<-1
 f2<-1
 e2 <- 0.5
 b <- c(-2,-0.4,0.4,2) #(dis)proportionality between mur and er
-c <- c(-2,-0.4,0.4,2) #(dis)proportionality between fr and er
+c <- c(-1.99,-0.39,0.39,1.99) #(dis)proportionality between fr and er
 bcs <- expand.grid(b,c)
 ers <- seq(1,0.5,-0.1) #relative sensitivities; arbitrary choice
 ylims <- c(-1,1)

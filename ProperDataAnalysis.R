@@ -11,18 +11,20 @@ ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
 cols <- c("burlywood4", "cadetblue", "chartreuse", 
           "chartreuse4", "chocolate1", "cyan",
           "darkblue", "darkgoldenrod1", "darkgray",
-          "firebrick1", "gray0", "hotpink")
+          "firebrick1", "gray0", "hotpink", "black")
 #where do the counts start in the files with counts? 
 CountColsStart <- c(7, 6, 7, NA, 5, 
-                    6, NA, 5, rep(NA,3), NA)
+                    6, NA, 5, rep(NA,3), NA, 8)
 #starting and ending dates considered for analysis 
 #(exclude before and after exposure period)
-StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1, rep(-1e10, 3), -1e10)
-EndDates <- c(21, 24, 21, 1e10, 4, 11, 1e10, 4, rep(1e10, 3), 1e10)
+StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1, rep(-1e10, 3), -1e10,
+                1)
+EndDates <- c(21, 24, 21, 1e10, 4, 11, 1e10, 4, rep(1e10, 3), 1e10,
+              10)
 #names given to indicate time in the data files
 TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.", 
                "Time", "Week", "Week", "Time", "Week", 
-               "Time", "Time", "Time", "Time") 
+               "Time", "Time", "Time", "Time", "week") 
 #names given to indicate treatment in the data files
 TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
@@ -83,7 +85,7 @@ YLABs <- c("Richness", "EF", "Similarity")
 names(YLABs) <- endpoints
 source("Plots.R")
 legend("topleft", cex=0.7,
-       paste("Study", c(1:length(PhytData))), ncol=3,
+       paste("Data set", c(1:length(PhytData))), ncol=3,
        pch="", lwd=2, col=cols[1:length(PhytData)])
 dev.off()
 

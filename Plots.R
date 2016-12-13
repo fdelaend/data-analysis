@@ -6,7 +6,7 @@ for (endpoint in selectedEndpoints)
 {
   plot(-10,0,  main=LETTERS[match(endpoint, 
                                   selectedEndpoints)],
-       xlim=c(0,1), ylim=c(-1,1), 
+       xlim=c(0,1), ylim=c(-1,1.2), 
        pch=19, xlab="Log concentration (scaled 0-1)", 
        ylab=paste("Effect on", YLABs[endpoint]))
   for (i in c(1:nrOfStudies))
@@ -40,8 +40,10 @@ for (endpoint in selectedEndpoints)
 for (endpoint in selectedEndpointsNotRichness)
 {
   form <- paste("mean",endpoint, " ~ as.factor(Study)", sep="")
-  boxplot(as.formula(form), data=EffectsAtInvarRichness,
-       main=LETTERS[2+match(endpoint,
+  subset <- which(is.na(EffectsAtInvarRichness[,paste("mean",endpoint,sep="")])==0)
+  EffectsAtInvarRichnessSubset <- EffectsAtInvarRichness[subset,]
+  boxplot(as.formula(form), data=EffectsAtInvarRichnessSubset,
+       main=LETTERS[3+match(endpoint,
                           selectedEndpointsNotRichness)],
        ylim=c(-1.1,1.1), border="grey",
        col=cols,#[EffectsAtInvarRichness[,"Study"]],

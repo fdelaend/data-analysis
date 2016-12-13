@@ -46,14 +46,14 @@ plotDeltaEF <- function(alpha, mu2, f2, e2,
 
 quartz("",5,5,type="pdf",
        file=paste(ResultsFolder,"Analytic.pdf",sep=""))
-par(mar=c(3,4,2,0.5), las=1, mfrow=c(4,4), 
-    tck=-0.02, mgp=c(2,0.5,0))
+par(mar=c(3,3,0.5,0.5), las=1, mfrow=c(4,4), 
+    tck=-0.02, mgp=c(1.6,0.5,0))
 
 for (i in 1:nrow(bcs))
 {
   plot(alpha,rep(NA,length(alpha)), 
-       ylim=ylims, main=paste("b=",bcs[i,1], 
-                              "c=",bcs[i,2]),
+       ylim=ylims, #main=paste("b=",bcs[i,1], 
+                   #           "c=",bcs[i,2]),
        ylab="Delta EF",
        xlim=c(max(alpha),min(alpha)))
   abline(h=0)

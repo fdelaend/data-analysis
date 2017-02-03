@@ -6,16 +6,16 @@ for (endpoint in selectedEndpoints)
 {
   plot(-10,0,  main=LETTERS[match(endpoint, 
                                   selectedEndpoints)],
-       xlim=c(0,1), ylim=c(-1,1.2), 
+       xlim=c(0,1), ylim=c(-100,120), 
        pch=19, xlab="Log concentration (scaled 0-1)", 
-       ylab=paste("Effect on", YLABs[endpoint]))
+       ylab=paste("% Effect on", YLABs[endpoint]))
   for (i in c(1:nrOfStudies))
   {
     #The data
     xy <- DoseRespDatas[which(DoseRespDatas[,"Study"]==i),
                         c("Scaled Log Concentration",
                           endpoint)]
-    if (dataToo) {points(xy[,1], xy[,2], col=cols[i])}
+    if (dataToo) {points(xy[,1], xy[,2]*100, col=cols[i])}
     #The model predictions. Aggregate makes sure summary stat(s) are done
     #in case there are systemTags
     xyOriginal <- DoseResps[which(DoseResps[,"Study"]==i),
@@ -24,7 +24,7 @@ for (endpoint in selectedEndpoints)
     xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
                         by=list(xyOriginal[,"Scaled Log Concentration"]),
                         FUN=median)
-    lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
+    lines(xy[,1], xy[,2]*100, lwd=1.5, col=cols[i])
     #xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
     #                by=list(xyOriginal[,"Scaled Log Concentration"]),
     #                FUN=min)
@@ -39,13 +39,13 @@ for (endpoint in selectedEndpoints)
 
 for (endpoint in selectedEndpointsNotRichness)
 {
-  form <- paste("mean",endpoint, " ~ as.factor(Study)", sep="")
+  form <- paste("100*mean",endpoint, " ~ as.factor(Study)", sep="")
   subset <- which(is.na(EffectsAtInvarRichness[,paste("mean",endpoint,sep="")])==0)
   EffectsAtInvarRichnessSubset <- EffectsAtInvarRichness[subset,]
   boxplot(as.formula(form), data=EffectsAtInvarRichnessSubset,
        main=LETTERS[3+match(endpoint,
                           selectedEndpointsNotRichness)],
-       ylim=c(-1.1,1.1), border="grey",
+       ylim=c(-110,110), border="grey",
        col=cols,#[EffectsAtInvarRichness[,"Study"]],
        xlab=XLAB, ylab=paste("Effect on", YLABs[endpoint],
        " \n at invariant richness"),
@@ -55,7 +55,6 @@ for (endpoint in selectedEndpointsNotRichness)
        labels=c(1:nrOfStudies),
        las=2, cex.axis=1)
   abline(h=0)
-  
 }
 
 

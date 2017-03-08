@@ -36,8 +36,8 @@ for (endpoint in endpoints)
     #calculate mean prediction, 
     #...and upper and lower limits as mean predicition +- 1se
     Mean <- Preds$fit
-    Upper <- Preds$fit+Preds$se.fit 
-    Lower <- Preds$fit-Preds$se.fit
+    Upper <- Preds$fit+2*Preds$se.fit 
+    Lower <- Preds$fit-2*Preds$se.fit
     #convert to effect sizes (stress intensity as in Steudel et al)
     Mean <- (Mean-Preds$fit[1])/Preds$fit[1]
     Upper <- (Upper-Preds$fit[1])/Preds$fit[1]

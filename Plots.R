@@ -57,4 +57,3 @@ for (endpoint in selectedEndpointsNotRichness)
   abline(h=0)
 }
 
-

@@ -7,7 +7,8 @@ PhytData <- c("md2/phytoplankton.txt",
                "Nystrom/periphyton.txt",
                "pvdb/phytoplankton.txt",
                "Larson/HighT.txt","Larson/LowT.txt","Larson/MedT.txt",
-               "Belanger/Belanger.txt")
+               "Belanger/Belanger.txt",
+               "roessink et al 2006/phytoplanktonClean.txt")[orders]
 
 PhytData  <- paste("/Users/frederik/Documents/data from people/",
                    PhytData, sep="")
@@ -15,8 +16,8 @@ PhytData  <- paste("/Users/frederik/Documents/data from people/",
 Substances <- c(rep("Linuron",3), "Diuron", 
                 "Herbicide mix", "Linuron",
                 "Atrazine", "Linuron", rep("Salinity",3),
-                "Copper")
-Substances <- c(rep(1,3), 2, 3, 1, 4, 1, rep(5,3), 6)
+                "Copper", "TPT")[orders]
+Substances <- c(rep(1,3), 2, 3, 1, 4, 1, rep(5,3), 6, 7)[orders]
 
 #NOMINAL concentrations cause often fluctuating through time!
 Concs <- list(c(0, 15, 50, 150, 500), c(0, 15, 50, 150, 500), 
@@ -27,4 +28,5 @@ Concs <- list(c(0, 15, 50, 150, 500), c(0, 15, 50, 150, 500),
               c(0, 0.5, 5, 15, 50, 150),
               c(30, 60, 90, 120, 150), c(30, 60, 90, 120, 150),
               c(30, 60, 90, 120, 150),
-              c(0, 9, 26, 47, 98, 208))
+              c(0, 9, 26, 47, 98, 208),
+              c(0, 0.001, 0.01, 0.03, 0.1))[orders]

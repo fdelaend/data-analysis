@@ -1,45 +1,43 @@
+#get nr of studies from i
+nrOfStudies <- i
 
-quartz("",6,6,type="pdf",
-       file=paste(ResultsFolder,"Test.pdf",sep=""))
-par(mar=c(5,5,2,0.5), las=1, mfrow=c(2,2))
-
-#First dose-responses for richness and EF
-for (endpoint in c("richness", "EF"))
+#First dose-responses for SelectedEndpoints only
+for (endpoint in selectedEndpoints)
 {
-  plot(-10,0,  main=LETTERS[match(endpoint, 
-                                  c("richness", "EF"))],
-       xlim=c(0,1), ylim=c(-1,1), 
+  plot(-10,0,  main=LETTERS[5+match(endpoint, 
+                                  selectedEndpoints)],
+       xlim=c(0,1), ylim=c(-100,120), 
        pch=19, xlab="Log concentration (scaled 0-1)", 
-       ylab=paste("Effect on", endpoint))
-  for (i in c(1:length(PhytData)))
+       ylab=paste("% Effect on", YLABs[endpoint]))
+  for (i in c(1:nrOfStudies))
   {
     #The data
     xy <- DoseRespDatas[which(DoseRespDatas[,"Study"]==i),
                         c("Scaled Log Concentration",
-                          paste("Effect on mean", endpoint))]
-    points(xy[,1], xy[,2], 
-           col=cols[i])
-    #The model predictions: mean, -, and +
-    xy <- DoseResps[which(DoseResps[,"Study"]==i),
+                          endpoint)]
+    if (dataToo) {points(xy[,1], xy[,2]*100, col=cols[i])}
+    #The model predictions. Aggregate makes sure summary stat(s) are done
+    #in case there are systemTags
+    xyOriginal <- DoseResps[which(DoseResps[,"Study"]==i),
                     c("Scaled Log Concentration",
-                      paste("Effect on mean", endpoint))]
-    lines(xy[,1], xy[,2], lwd=1.5,
-          col=cols[i])
-    xy <- DoseResps[which(DoseResps[,"Study"]==i),
-                    c("Scaled Log Concentration",
-                      paste("Effect on mean", endpoint,"-"))]
-    #lines(xy[,1], xy[,2], lwd=1.5, lty="dotted",
-    #      col=rgb(cols[[1]][i], cols[[2]][i], cols[[3]][i], 1))
-    xy <- DoseResps[which(DoseResps[,"Study"]==i),
-                    c("Scaled Log Concentration",
-                      paste("Effect on mean", endpoint,"+"))]
-    #lines(xy[,1], xy[,2], lwd=1.5, lty="dotted",
-    #      col=rgb(cols[[1]][i], cols[[2]][i], cols[[3]][i], 1))
-    
+                      paste("mean", endpoint, sep=""))]
+    xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
+                        by=list(xyOriginal[,"Scaled Log Concentration"]),
+                        FUN=median)
+    lines(xy[,1], xy[,2]*100, lwd=1.5, col=cols[i])
+    #xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
+    #                by=list(xyOriginal[,"Scaled Log Concentration"]),
+    #                FUN=min)
+    #lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
+    #xy <- aggregate(xyOriginal[,paste("mean", endpoint, sep="")], 
+    #                by=list(xyOriginal[,"Scaled Log Concentration"]),
+    #                FUN=max)
+    #lines(xy[,1], xy[,2], lwd=1.5, col=cols[i])
+    #  
   }
-  
 }
 
+<<<<<<< HEAD
 #Now emerging BEF
 #plot(-10,0,  main="C",
 #     xlim=c(-1,1), ylim=c(-1,1), 
@@ -80,4 +78,25 @@ axis(1, at=c(1:length(PhytData)),
 abline(h=0)
 
 dev.off()
+=======
+for (endpoint in selectedEndpointsNotRichness)
+{
+  form <- paste("100*mean",endpoint, " ~ as.factor(Study)", sep="")
+  subset <- which(is.na(EffectsAtInvarRichness[,paste("mean",endpoint,sep="")])==0)
+  EffectsAtInvarRichnessSubset <- EffectsAtInvarRichness[subset,]
+  boxplot(as.formula(form), data=EffectsAtInvarRichnessSubset,
+       main=LETTERS[5+length(selectedEndpoints)+match(endpoint,
+                          selectedEndpointsNotRichness)],
+       ylim=c(-110,110), border="grey",
+       col=cols,#[EffectsAtInvarRichness[,"Study"]],
+       xlab=XLAB, ylab=paste("Effect on", YLABs[endpoint],
+       " \n at invariant richness"),
+       xaxt="n",
+       pch=15)
+  axis(1, at=c(1:nrOfStudies),
+       labels=c(1:nrOfStudies),
+       las=2, cex.axis=1)
+  abline(h=0)
+}
+>>>>>>> simulations
 

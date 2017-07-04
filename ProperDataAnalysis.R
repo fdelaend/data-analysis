@@ -1,83 +1,103 @@
-
+#This is now the new branch
 require(lattice)
 require(vegan)
 require(mgcv)
+compositionsAv <- c(1:3, 5, 6, 8, 13)
+orders <- c(compositionsAv, 4, 7, 9:12)
 source("/Users/frederik/Documents/work/functions/Functions.R")
 #get locations of phytodata and corresponding substances and concentrations
 source("/Users/frederik/Documents/work/BD_EF/data-analysis/PhytData.R")
 #specify destination for plots and other output
 ResultsFolder <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
-#color specs: input for all possible color codes are generated here,
-#for later input into rgb
+#color specs: 
 cols <- c("burlywood4", "cadetblue", "chartreuse", 
           "chartreuse4", "chocolate1", "cyan",
           "darkblue", "darkgoldenrod1", "darkgray",
-          "firebrick1", "gray0", "hotpink")
+          "firebrick1", "gray0", "hotpink", "darkviolet")[orders]
 #where do the counts start in the files with counts? 
 CountColsStart <- c(7, 6, 7, NA, 5, 
-                    6, NA, 5, rep(NA,3), NA)
+                    6, NA, 5, rep(NA,3), NA, 8)[orders]
 #starting and ending dates considered for analysis 
 #(exclude before and after exposure period)
-StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1, rep(-1e10, 3), -1e10)
-EndDates <- c(21, 24, 21, 1e10, 4, 11, 1e10, 4, rep(1e10, 3), 1e10)
+StartDates <- c(1, 1, 21, -1e10, 1, 1, -1e10, 1, rep(-1e10, 3), -1e10,
+                1)[orders]
+EndDates <- c(21, 24, 21, 1e10, 4, 11, 1e10, 4, rep(1e10, 3), 1e10,
+              10)[orders]
 #names given to indicate time in the data files
 TimeNames <- c("Days.p.a.", "Days.p.a.", "Days.p.a.", 
                "Time", "Week", "Week", "Time", "Week", 
-               "Time", "Time", "Time", "Time") 
+               "Time", "Time", "Time", "Time", "week")[orders] 
 #names given to indicate treatment in the data files
 TreatmentNames <- rep("Treatment", length(PhytData))
 #what will this analysis use as endpoints?
-#..."Richness" and "EF" should be listed as 1 and 2 in this vector
 endpoints <- c("Richness", "EF", "Sim")
-
-#allocate object to store effects on ef 
+#these will be plotted in dose-response mode
+selectedEndpoints <- c("Richness", "EF", "Sim")
+#and effects on these will be plotted for cases where richness is not affected
+selectedEndpointsNotRichness <- c("EF", "Sim")
+  
+#allocate object to store effects on endpoint 
 #...occurring with no effect on richness
-EFEffectsAtInvarRichness <- NULL
-#allocate object to store effects on similarity with control
-#...occurring with no effect on richness
-EFEffectsAtInvarRichnessComp <- NULL
-#allocate object to store dose responses for "Richness" and "EF"
+EffectsAtInvarRichness <- NULL
+#allocate object to store dose responses for endpoints
 DoseResps <- NULL
-#allocate object to store dose response data for "Richness" and "EF"
+#allocate object to store dose response data for endpoints
 DoseRespDatas <- NULL
-#allocate object to store BEF trajectories
-BEF <- NULL
+#YES, you want to plot the data too 
+dataToo <- TRUE
+#Keep track of some summary stats
+SummStats <- NULL
 
 for (i in c(1:length(PhytData)))
 {
   #Reading of data and EF calc
   Data   <- read.delim(PhytData[i])
-  #Calculation of effects 
-  Result <- BDEF(data=Data, #will throw a warning cause similarity not yet done 
-                 CountCols=CountColsStart[i],           #correctly. No prob 
-                 TimeName=TimeNames[i],                 #cause not used for now.
+  #Calculation of richness (similarity automatically done if counts present)
+  Result <- BDEF(data=Data,  
+                 CountCols=CountColsStart[i],            
+                 TimeName=TimeNames[i],                 
                  TreatmentName=TreatmentNames[i],
                  Affected = StartDates[i]-1e-10, #have to substract
                  NoAffected = EndDates[i]+1e-10, #or add small nr cause 
                  endpoints = "Richness",          #< and > in BDEF function
-                 x=0)
+                 Binary=TRUE, x=0) #such that 'only' changes in density are ignored
   if (min(Concs[[i]])==0) #Concentrations will be log-transformed later 
   {                       #so we need to replace zero by a low nr.
-    Concs[[i]][1] <- Concs[[i]][2]/2
+    Concs[[i]][1] <- Concs[[i]][2]/10
   }
   Result$Conc <- log10(Concs[[i]][as.numeric(Result$Treatment)]) #here's the log transform
+  SummStats <- rbind(SummStats, cbind(
+                     mean(Result$Richness[which(Result$Treatment==1)]),
+                     length(unique(Result[,TimeNames[i]]))))
+
   source("DRM.r")
 }
 
-colnames(DoseResps) <- c("Study", "Scaled Log Concentration", 
-                         "Effect on mean richness", 
-                         "Effect on mean richness -", 
-                         "Effect on mean richness +",
-                         "Effect on mean EF", 
-                         "Effect on mean EF -", 
-                         "Effect on mean EF +")
+#add systemTag so clear it's all 1 system within 1 Study
+DoseResps <- cbind(DoseResps, systemTag=DoseResps[,"Study"]^0)
+#get indices where effect on richness not different from zero
+#...as decided based on the standard errors encompassing 0
+#...and track
+Ind <- which((DoseResps[,"upRichness"]>0)*(DoseResps[,"lowRichness"]<0)==1)
+if (length(Ind)>0) 
+{
+  EffectsAtInvarRichness <- DoseResps[Ind,]
+}
 
-colnames(DoseRespDatas) <- c("Study", "Scaled Log Concentration",
-                             "Effect on mean richness",
-                             "Effect on mean EF")
-
-colnames(BEF)       <- c("Study", "Richness", "EF")
-
-
+quartz("",7.5,5,type="pdf",
+       file=paste(ResultsFolder,"TestData.pdf",sep=""))
+par(mar=c(3,4,2,0.5), las=1, mfrow=c(2,3), 
+    tck=-0.02, mgp=c(2,0.5,0))
+XLAB <- "Data set"
+YLABs <- c("Richness", "EF", "Similarity")
+names(YLABs) <- endpoints
+source("Plots.R")
+par(col.axis="transparent", xaxt="n", yaxt="n",
+    col.lab="transparent")
+plot(0,0, col="transparent", axes = 0)
+legend("topleft", cex=1, 
+       paste("Data set", c(1:length(PhytData))), ncol=2,
+       pch="", lwd=2, col=cols[1:length(PhytData)])
+dev.off()
 
 

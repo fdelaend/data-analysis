@@ -7,6 +7,11 @@ require(mgcv)
 print("You will need to download Functions.R in the functions repository,")
 print("put it in the working dir. for this to work, and ")
 print("remove the path below. Sorry.")
+
+print("You will need to download the data from the data-analysis-data repository,")
+print("and change the paths in the PhytData.R file.")
+print("Sorry.")
+
 source("/Users/frederik/Documents/work/functions/Functions.R")
 
 #Studies where we have community composition
@@ -14,7 +19,7 @@ compositionsAv               <- c(1:3, 5, 6, 8, 13)
 #Preferred order of appearance of studies in the MS and legend of figure with empirical data
 orders                       <- c(compositionsAv, 4, 7, 9:12)
 #get locations of phytodata and corresponding substances and concentrations
-source("/Users/frederik/Documents/work/BD_EF/data-analysis/PhytData.R")
+source("PhytData.R")
 #specify destination for plots and other output. You'll need to change this.
 ResultsFolder                <- "/Users/frederik/Documents/Results/BD_EF/data-analysis/"
 #color specs: 

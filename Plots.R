@@ -4,7 +4,7 @@ nrOfStudies <- i
 #First dose-responses for SelectedEndpoints only
 for (endpoint in selectedEndpoints)
 {
-  plot(-10,0,  main=LETTERS[match(endpoint, 
+  plot(-10,0,  main=LETTERS[5+match(endpoint, 
                                   selectedEndpoints)],
        xlim=c(0,1), ylim=c(-100,120), 
        pch=19, xlab="Log concentration (scaled 0-1)", 
@@ -43,7 +43,7 @@ for (endpoint in selectedEndpointsNotRichness)
   subset <- which(is.na(EffectsAtInvarRichness[,paste("mean",endpoint,sep="")])==0)
   EffectsAtInvarRichnessSubset <- EffectsAtInvarRichness[subset,]
   boxplot(as.formula(form), data=EffectsAtInvarRichnessSubset,
-       main=LETTERS[3+match(endpoint,
+       main=LETTERS[5+length(selectedEndpoints)+match(endpoint,
                           selectedEndpointsNotRichness)],
        ylim=c(-110,110), border="grey",
        col=cols,#[EffectsAtInvarRichness[,"Study"]],

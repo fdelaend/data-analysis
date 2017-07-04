@@ -45,6 +45,8 @@ DoseResps <- NULL
 DoseRespDatas <- NULL
 #YES, you want to plot the data too 
 dataToo <- TRUE
+#Keep track of some summary stats
+SummStats <- NULL
 
 for (i in c(1:length(PhytData)))
 {
@@ -61,9 +63,13 @@ for (i in c(1:length(PhytData)))
                  Binary=TRUE, x=0) #such that 'only' changes in density are ignored
   if (min(Concs[[i]])==0) #Concentrations will be log-transformed later 
   {                       #so we need to replace zero by a low nr.
-    Concs[[i]][1] <- Concs[[i]][2]/2
+    Concs[[i]][1] <- Concs[[i]][2]/10
   }
   Result$Conc <- log10(Concs[[i]][as.numeric(Result$Treatment)]) #here's the log transform
+  SummStats <- rbind(SummStats, cbind(
+                     mean(Result$Richness[which(Result$Treatment==1)]),
+                     length(unique(Result[,TimeNames[i]]))))
+
   source("DRM.r")
 }
 

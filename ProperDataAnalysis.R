@@ -63,7 +63,7 @@ for (i in c(1:length(PhytData)))
                  Binary=TRUE, x=0) #such that 'only' changes in density are ignored
   if (min(Concs[[i]])==0) #Concentrations will be log-transformed later 
   {                       #so we need to replace zero by a low nr.
-    Concs[[i]][1] <- Concs[[i]][2]/10
+    Concs[[i]][1] <- Concs[[i]][2]/2
   }
   Result$Conc <- log10(Concs[[i]][as.numeric(Result$Treatment)]) #here's the log transform
   SummStats <- rbind(SummStats, cbind(
